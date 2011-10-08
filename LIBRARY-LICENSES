@@ -1,0 +1,71 @@
+The following are libraries that Mavuno either directly or indirectly
+ynamically links to. For each library, we provide URL and software license
+information.
+
+-----------------------------------------
+
+cloud9-1.2.5.jar
+
+URL: http://www.umiacs.umd.edu/~jimmylin/cloud9/docs/
+License: Apache License 2.0
+
+-----------------------------------------
+
+commons-cli-1.2.jar
+commons-logging-1.1.jar
+
+URL: http://commons.apache.org/
+License: Apache License 2.0
+
+-----------------------------------------
+
+fanseparser-0.2.2.jar
+
+URL: http://www.isi.edu/publications/licensed-sw/fanseparser/index.html
+License: Apache License 2.0
+
+-----------------------------------------
+
+hadoop-0.20.2-core.jar
+
+URL: http://hadoop.apache.org/
+License: Apache License 2.0
+
+-----------------------------------------
+
+joda-time-2.0.jar
+
+URL: http://joda-time.sourceforge.net/
+License: Apache License 2.0
+
+-----------------------------------------
+
+log4j-1.2.13.jar
+
+URL: http://logging.apache.org/log4j/
+License: Apache License 2.0
+
+-----------------------------------------
+
+opennlp-maxent-3.0.1-incubating.jar
+opennlp-tools-1.5.1-incubating.jar
+
+URL: http://incubator.apache.org/opennlp/
+License: Apache License 2.0
+
+-----------------------------------------
+
+stanford-corenlp-2011-09-14-models.jar
+stanford-corenlp-2011-09-16.jar
+
+URL: http://nlp.stanford.edu/software/corenlp.shtml
+License: GNU Public License (GPL)
+
+-----------------------------------------
+
+xom.jar
+
+URL: http://www.xom.nu/
+License: GNU Lesser General Public License (LGPL)
+
+-----------------------------------------

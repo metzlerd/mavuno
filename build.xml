@@ -1,0 +1,77 @@
+<project name="mavuno" default="jar" basedir=".">
+
+	<description>Mavuno build file.</description>
+  
+	<!-- set global properties for this build -->
+	<property name="version" value="0.1" />
+	<property name="src" location="src"/>
+	<property name="build" location="build"/>
+	<property name="models" location="models" />
+	<property name="lib" location="lib" />
+	<property name="docs" location="docs" />
+
+	<path id="classpath">
+		<fileset dir="lib">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}"/>
+	</target>
+
+	<target name="compile" depends="init" description="compile the source " >
+		<javac classpathref="classpath" srcdir="${src}" destdir="${build}"/>
+	</target>
+
+	<target name="jar" depends="compile" description="builds the jar">
+		<jar jarfile="mavuno-${version}.jar" basedir="${build}" />
+		<jar jarfile="mavuno-${version}-models.jar">
+			<fileset dir=".">
+				<include name="models/**" />
+				<include name="wordnet/**" />
+			</fileset>
+		</jar>
+	</target>
+	
+    <target name="javadoc">
+    	<javadoc destdir="${docs}" access="public" use="false" notree="false" nonavbar="false" noindex="false" splitindex="no" author="true" version="true" nodeprecatedlist="true" nodeprecated="true" classpathref="classpath">
+    		<fileset dir="${src}">
+    			<include name="**/*.java" />
+    			<exclude name="ivory/**/*.java" />
+    			<exclude name="org/**/*.java" />
+    		</fileset>
+    		<link href="http://download.oracle.com/javase/6/docs/api/" />
+    		<link href="http://hadoop.apache.org/common/docs/current/api/" />
+    		<link href="http://www.umiacs.umd.edu/~jimmylin/Cloud9/docs/api/" />
+		<link href="http://nlp.stanford.edu/nlp/javadoc/javanlp/" />
+    	</javadoc>
+    </target>
+
+	<target name="dist" depends="clean,jar,javadoc" description="generate the distribution" >
+		<tar destfile="mavuno-${version}.tar.gz">
+			<fileset dir=".">
+				<exclude name="build/**" />
+				<exclude name="models/**" />
+			</fileset>
+		</tar>
+		<zip destfile="mavuno-${version}.zip">
+			<fileset dir=".">
+				<exclude name="mavuno-${version}.tar.gz" />
+				<exclude name="build/**" />
+				<exclude name="models/**" />
+			</fileset>
+		</zip>
+	</target>
+	
+	<target name="clean" description="clean up" >
+		<delete dir="${build}"/>
+		<delete dir="${docs}"/>
+		<delete file="mavuno-${version}.jar" />
+		<delete file="mavuno-${version}-models.jar" />
+		<delete file="mavuno-${version}.zip" />
+		<delete file="mavuno-${version}.tar.gz" />		
+	</target>
+
+</project> 

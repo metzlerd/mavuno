@@ -1,0 +1,4 @@
+yellow brick
+kill(ed)?.*Witch.*(West|East)
+<sentence>\t1\tDorothy\t
+\tPERSON\t.*\tLOCATION\t
