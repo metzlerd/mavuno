@@ -25,7 +25,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -59,10 +58,6 @@ public class SequenceFileToText extends Configured implements Tool {
 			mValue.set(value.toString());
 			context.write(mKey, mValue);
 		}
-	}
-
-	private static class MyReducer extends Reducer<Text, Text, Text, Text> {
-		/* identity reducer */
 	}
 
 	/* (non-Javadoc)
@@ -100,7 +95,7 @@ public class SequenceFileToText extends Configured implements Tool {
 		job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(MyMapper.class);
-		job.setReducerClass(MyReducer.class);
+		job.setNumReduceTasks(0);
 		
 		job.waitForCompletion(true);		
 		return 0;

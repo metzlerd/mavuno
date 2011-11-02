@@ -19,6 +19,7 @@ package edu.isi.mavuno.app.ie;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -42,6 +43,7 @@ import org.apache.log4j.Logger;
 import tratz.parse.types.Token;
 import edu.isi.mavuno.nlp.NLProcTools;
 import edu.isi.mavuno.util.MavunoUtils;
+import edu.isi.mavuno.util.TratzParsedTokenWritable;
 import edu.stanford.nlp.ling.Word;
 import edu.umd.cloud9.collection.Indexable;
 
@@ -139,13 +141,11 @@ public class HarvestSAPInstances extends Configured implements Tool {
 				// get named entity tags
 				List<String> neTags = mTextUtils.getNETags();
 
-				// lowercase the first term in the sentence if it's not a proper noun
-				if(!posTags.get(0).startsWith("NNP")) {
-					tokens.get(0).setText(tokens.get(0).getText().toLowerCase());
-				}
+				// created tagged tokens
+				List<TratzParsedTokenWritable> taggedTokens = NLProcTools.getTaggedTokens(tokens, posTags, neTags);
 
 				// assign chunk ids to each position within the sentence
-				int [] chunkIds = NLProcTools.getChunkIds(tokens, neTags);
+				int [] chunkIds = NLProcTools.getChunkIds(taggedTokens, true);
 
 				// chunks should not contain the "such as" pattern
 				int suchChunkId = chunkIds[matchPos];
@@ -156,11 +156,11 @@ public class HarvestSAPInstances extends Configured implements Tool {
 
 				// get X chunks
 				int xChunkId = suchChunkId - 1;
-				Set<Text> xChunks = NLProcTools.extractChunks(xChunkId, chunkIds, tokens, neTags, true, true, true, true);
+				Set<Text> xChunks = NLProcTools.extractChunks(xChunkId, chunkIds, taggedTokens, true, true, true, true);
 
 				// get Y chunks
 				int yChunkId = asChunkId + 1;
-				Set<Text> yChunks = NLProcTools.extractChunks(yChunkId, chunkIds, tokens, neTags, true, true, true, true);
+				Set<Text> yChunks = NLProcTools.extractChunks(yChunkId, chunkIds, taggedTokens, true, true, true, true);
 
 				// emit cross product of X and Y chunks
 				for(Text xChunk : xChunks) {

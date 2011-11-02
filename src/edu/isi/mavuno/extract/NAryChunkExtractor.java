@@ -25,6 +25,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 
 import edu.isi.mavuno.input.SentenceSegmentedDocument;
+import edu.isi.mavuno.nlp.NLProcTools;
 import edu.isi.mavuno.util.ContextPatternWritable;
 import edu.isi.mavuno.util.MavunoUtils;
 import edu.isi.mavuno.util.PermutationGenerator;
@@ -118,24 +119,21 @@ public class NAryChunkExtractor extends Extractor {
 		// get sentence
 		SentenceWritable<TratzParsedTokenWritable> sentence = mSentIter.next();
 
-		// extract chunks from sentence
+		// get chunk ids
+		List<TratzParsedTokenWritable> sentenceTokens = sentence.getTokens();
+		int [] chunkIds = NLProcTools.getChunkIds(sentenceTokens);
+
 		mChunks.clear();
 		mChunkTokens.clear();
-		List<TratzParsedTokenWritable> tokens = sentence.getTokens();
-		Text lastNETag = new Text();
-		for(int i = 0; i < tokens.size(); i++) {
-			TratzParsedTokenWritable t = tokens.get(i);
-			byte chunkType = t.getChunkTag().getLength() > 0 ? t.getChunkTag().getBytes()[0] : 0;
-			Text neTag = t.getNETag();
-			if(neTag.compareTo(lastNETag.getBytes(), 0, lastNETag.getLength()) != 0 || (neTag.getLength() == 1 && (neTag.getLength() > 0 && neTag.getBytes()[0] == 'O')) && (chunkType == 'B' || chunkType == 'O')) {
-				if(mChunkTokens.size() > 0) {
-					Chunk chunk = createChunk(mChunkTokens);
-					mChunks.add(chunk);
-				}
+
+		// extract chunks from sentence
+		for(int i = 0; i < chunkIds.length; i++) {
+			if(i > 0 && chunkIds[i] != chunkIds[i-1]) {
+				Chunk chunk = createChunk(mChunkTokens);
+				mChunks.add(chunk);
 				mChunkTokens.clear();
 			}
-			mChunkTokens.add(t);
-			lastNETag.set(neTag);
+			mChunkTokens.add(sentenceTokens.get(i));
 		}
 
 		// handle last chunk in sentence
@@ -179,7 +177,7 @@ public class NAryChunkExtractor extends Extractor {
 				// left chunk type
 				basePattern.append(mContextChunks[i].type.getBytes(), 0, mContextChunks[i].type.getLength());					
 				basePattern.append(MavunoUtils.PIPE_BYTES, 0, MavunoUtils.PIPE_BYTES_LENGTH);
-				
+
 				if(mContextPositions[i+1] - mPatternPositions[i] > 1 || mPatternPositions[i] - mContextPositions[i] > 1) {
 					if(mPatternPositions[i] == mContextPositions[i]) {
 						basePattern.append(MavunoUtils.ASTERISK_BYTES, 0, MavunoUtils.ASTERISK_BYTES_LENGTH);
@@ -195,7 +193,7 @@ public class NAryChunkExtractor extends Extractor {
 					else {
 						basePattern.append(MavunoUtils.ASTERISK_BYTES, 0, MavunoUtils.ASTERISK_BYTES_LENGTH);						
 						basePattern.append(mPatternChunks[i].text.getBytes(), 0, mPatternChunks[i].text.getLength());
-						basePattern.append(MavunoUtils.ASTERISK_BYTES, 0, MavunoUtils.ASTERISK_BYTES_LENGTH);						
+						basePattern.append(MavunoUtils.ASTERISK_BYTES, 0, MavunoUtils.ASTERISK_BYTES_LENGTH);
 					}
 				}
 				else if(mPatternPositions[i] == mContextPositions[i]) {
@@ -219,12 +217,12 @@ public class NAryChunkExtractor extends Extractor {
 
 				ContextPatternWritable c = new ContextPatternWritable();
 
-				// context
+				// pattern
 				c.setPattern(basePattern);
 				Text numLeftText = new Text(mPermGen.getNumLeft() + "/" + mArity);
 				c.getPattern().append(numLeftText.getBytes(), 0, numLeftText.getLength());
 
-				// pattern
+				// context
 				c.getContext().clear();
 				for(int i = 0; i < mArity; i++) {
 					c.getContext().append(mContextChunks[indices[i]].text.getBytes(), 0, mContextChunks[indices[i]].text.getLength());
@@ -242,7 +240,7 @@ public class NAryChunkExtractor extends Extractor {
 			while(pos >= 0) {
 				if(mPatternPositions[pos] + 1 < mChunks.size() && mPatternPositions[pos] + 1 < mContextPositions[pos+1]) {
 					mPatternPositions[pos]++;
-					for(int i = pos + 1; i < mArity - 1; i++) {
+					for(int i = pos + 1; i < mArity - 2; i++) {
 						mPatternPositions[i] = mContextPositions[i];
 					}
 					break;
@@ -254,17 +252,21 @@ public class NAryChunkExtractor extends Extractor {
 			if(pos < 0) {
 				pos = mArity - 1;
 				while(pos >= 0) {
-					if(mContextPositions[pos] + 1 < mChunks.size() - mArity && (pos <= 0 || mContextPositions[pos] - mContextPositions[pos-1] <= mMaxSkipSize)) {
+					if(mContextPositions[pos] + 1 < mChunks.size() && 
+					   (pos + 1 >= mArity || mContextPositions[pos+1] - (mContextPositions[pos] + 1) >= 1) && 
+					   (pos <= 0 || mContextPositions[pos] - mContextPositions[pos-1] - 1 <= mMaxSkipSize)) {
 						mContextPositions[pos]++;
 						if(pos < mArity - 1) {
 							mPatternPositions[pos] = mContextPositions[pos];
 						}
+
 						for(int i = pos + 1; i < mArity; i++) {
-							mContextPositions[i] = mContextPositions[i-1] + 1;
+							mContextPositions[i] = mContextPositions[pos] + (i - pos);
 							if(i < mArity - 1) {
 								mPatternPositions[i] = mContextPositions[i];
 							}
 						}
+
 						break;
 					}
 					pos--;
@@ -283,7 +285,7 @@ public class NAryChunkExtractor extends Extractor {
 
 	private Chunk createChunk(List<TratzParsedTokenWritable> terms) {
 		Chunk chunk = new Chunk();
-		
+
 		// construct the chunk text and detect the chunk type
 		Text chunkNEType = null;
 		for(int i = 0; i < terms.size(); i++) {
@@ -295,7 +297,7 @@ public class NAryChunkExtractor extends Extractor {
 			if(i != terms.size() - 1) {
 				chunk.text.append(MavunoUtils.SPACE_BYTES, 0, MavunoUtils.SPACE_BYTES_LENGTH);
 			}
-			
+
 			// TODO: replace this with a more robust way of checking if this is an actual named entity or not
 			if(neTag.getLength() != 1 || (neTag.getLength() > 0 && neTag.getBytes()[0] != 'O')) {
 				chunkNEType = neTag;
@@ -315,10 +317,10 @@ public class NAryChunkExtractor extends Extractor {
 				chunk.type.set(chunkTag);
 			}
 		}
-		
+
 		return chunk;
 	}
-	
+
 	public class Chunk {
 		public final Text text = new Text();
 		public final Text type = new Text();

@@ -51,6 +51,7 @@ import tratz.parse.util.NLParserUtils;
 import tratz.pos.PosTagger;
 import tratz.pos.featgen.PosFeatureGenerator;
 import edu.isi.mavuno.util.MavunoUtils;
+import edu.isi.mavuno.util.TratzParsedTokenWritable;
 import edu.stanford.nlp.ie.AbstractSequenceClassifier;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
 import edu.stanford.nlp.ling.CoreAnnotations.AnswerAnnotation;
@@ -79,7 +80,7 @@ public class NLProcTools {
 	public static final String WORDNET_PATH = "wordnet";
 
 	// regular expressions (defined over POS tag streams) for composite and basic terms
-	private static final Pattern BASIC_TERM_PATTERN = Pattern.compile("(X|D)?((A|N)+|((A|N)*(NP)?)(A|N)*)NX*");
+	private static final Pattern BASIC_TERM_PATTERN = Pattern.compile("D?((A|N)+|((A|N)*(NP)?)(A|N)*)N");
 	private static final Pattern COMPOSITE_TERM_PATTERN = Pattern.compile("(X|D)?((A|N)+|((A|N)*(NP)?)(A|N)*)NX*(C+(X|D)?((A|N)+|((A|N)*(NP)?)(A|N)*)NX*)*");
 
 	public static final String SEPARATOR = "\t";
@@ -277,13 +278,46 @@ public class NLProcTools {
 		return mSentenceDetector.process(mTagStripper.process(documentWords));
 	}
 
-	public static int [] getChunkIds(List<Token> tokens, List<String> neTags) {
+	public static List<TratzParsedTokenWritable> getTaggedTokens(List<Token> tokens, List<String> posTags, List<String> neTags) {
+		// make sure that # tokens = # pos tags = # ne tags
+		if(tokens.size() != posTags.size() || posTags.size() != neTags.size()) {
+			throw new IllegalArgumentException("Arguments must satisfy the condition: tokens.size() == posTags.size() == neTags.size()");
+		}
+		
+		List<TratzParsedTokenWritable> taggedTokens = new ArrayList<TratzParsedTokenWritable>();
+		
+		for(int i = 0; i < tokens.size(); i++) {
+			// construct tagged token
+			TratzParsedTokenWritable t = new TratzParsedTokenWritable();
+			t.setToken(tokens.get(i).getText());
+			t.setPosTag(posTags.get(i));
+			t.setNETag(neTags.get(i));
+			
+			taggedTokens.add(t);
+		}
+		
+		return taggedTokens;
+	}
+
+	public static int [] getChunkIds(List<TratzParsedTokenWritable> tokens) {
+		return getChunkIds(tokens, false);
+	}
+	
+	public static int [] getChunkIds(List<TratzParsedTokenWritable> tokens, boolean composite) {
 		int [] chunks = new int[tokens.size()];
 
 		// get part of speech tag "signature" for the entire sentence
-		String posSignature = getPOSSignature(tokens, neTags, 0, tokens.size());
+		String posSignature = getPOSSignature(tokens, 0, tokens.size());
 
-		Matcher m = COMPOSITE_TERM_PATTERN.matcher(posSignature);
+		// get the appropriate term matcher
+		Matcher m;
+		if(composite) {
+			m = COMPOSITE_TERM_PATTERN.matcher(posSignature);
+		}
+		else {
+			m = BASIC_TERM_PATTERN.matcher(posSignature);
+		}
+		
 		int lastMatch = 0;
 		int curChunk = 0;
 		while(m.find()) {
@@ -315,7 +349,7 @@ public class NLProcTools {
 		return chunks;
 	}
 
-	public static Set<Text> extractChunks(int id, int [] chunkIds, List<Token> tokens, List<String> neTags, boolean split, boolean extractSpecific, boolean extractGeneral, boolean appendPOSTag) {
+	public static Set<Text> extractChunks(int id, int [] chunkIds, List<TratzParsedTokenWritable> tokens, boolean split, boolean extractSpecific, boolean extractGeneral, boolean appendPOSTag) {
 		Set<Text> chunks = new HashSet<Text>();
 
 		// get start and end position of the chunk with this id
@@ -334,13 +368,13 @@ public class NLProcTools {
 		}
 
 		// extract "sub" chunks (using BASIC_TERM_PATTERN) from main chunk
-		Set<Text> subChunks = extractSubChunks(chunkStart, chunkEnd, tokens, neTags, split, extractSpecific, extractGeneral, appendPOSTag);
+		Set<Text> subChunks = extractSubChunks(chunkStart, chunkEnd, tokens, split, extractSpecific, extractGeneral, appendPOSTag);
 		chunks.addAll(subChunks);
 
 		return chunks;
 	}
 
-	private static Set<Text> extractSubChunks(int chunkStart, int chunkEnd, List<Token> tokens, List<String> neTags, boolean split, boolean extractSpecific, boolean extractGeneral, boolean appendPOSTag) {
+	private static Set<Text> extractSubChunks(int chunkStart, int chunkEnd, List<TratzParsedTokenWritable> tokens, boolean split, boolean extractSpecific, boolean extractGeneral, boolean appendPOSTag) {
 
 		// make sure that there's something to extract
 		if(!extractSpecific && !extractGeneral) {
@@ -350,7 +384,7 @@ public class NLProcTools {
 		Set<Text> chunks = new HashSet<Text>();
 
 		// get part of speech tag "signature" for this chunk
-		String posSignature = getPOSSignature(tokens, neTags, chunkStart, chunkEnd+1);
+		String posSignature = getPOSSignature(tokens, chunkStart, chunkEnd+1);
 
 		Matcher m = BASIC_TERM_PATTERN.matcher(posSignature);
 
@@ -358,7 +392,7 @@ public class NLProcTools {
 		if(m.matches()) {
 			// extract "main" chunk (if necessary)
 			if(extractSpecific) {
-				Text mainChunk = extractMainChunk(chunkStart, chunkEnd+1, tokens, neTags, appendPOSTag);
+				Text mainChunk = extractMainChunk(chunkStart, chunkEnd+1, tokens, appendPOSTag);
 				if(mainChunk != null) {
 					chunks.add(mainChunk);
 				}
@@ -366,7 +400,7 @@ public class NLProcTools {
 
 			// extract "generalized" chunk from main chunk (if necessary)
 			if(extractSpecific) {
-				Text generalizedChunk = extractGeneralizedChunk(chunkStart, chunkEnd, tokens, neTags, appendPOSTag);
+				Text generalizedChunk = extractGeneralizedChunk(chunkStart, chunkEnd, tokens, appendPOSTag);
 				if(generalizedChunk != null) {
 					chunks.add(generalizedChunk);
 				}
@@ -385,7 +419,7 @@ public class NLProcTools {
 
 			// extract "main" sub chunk (if necessary)
 			if(extractSpecific) {
-				Text mainChunk = extractMainChunk(start, end, tokens, neTags, appendPOSTag);
+				Text mainChunk = extractMainChunk(start, end, tokens, appendPOSTag);
 				if(mainChunk != null) {
 					if(split) {
 						chunks.add(mainChunk);
@@ -398,7 +432,7 @@ public class NLProcTools {
 
 			// extract "generalized" chunk for this sub chunk (if necessary)
 			if(extractGeneral) {
-				Text generalizedChunk = extractGeneralizedChunk(start, end-1, tokens, neTags, appendPOSTag);
+				Text generalizedChunk = extractGeneralizedChunk(start, end-1, tokens, appendPOSTag);
 				if(generalizedChunk != null) {
 					if(split) {
 						chunks.add(generalizedChunk);
@@ -426,14 +460,16 @@ public class NLProcTools {
 		return chunks;
 	}
 
-	private static Text extractMainChunk(int start, int end, List<Token> tokens, List<String> neTags, boolean appendPOSTag) {
+	private static Text extractMainChunk(int start, int end, List<TratzParsedTokenWritable> tokens, boolean appendPOSTag) {
 		StringBuffer chunk = new StringBuffer();
 		String tag = "O";
 
 		boolean firstWord = true;
 		for(int i = start; i < end; i++) {
-			String text = tokens.get(i).getText();
-			String neTag = neTags.get(i);
+			TratzParsedTokenWritable t = tokens.get(i);
+			
+			String text = t.getToken().toString();
+			String neTag = t.getNETag().toString();
 
 			// exclude special characters and punctuation from the beginning and end of the chunk
 			if(isPunctuation(text)) {
@@ -468,18 +504,18 @@ public class NLProcTools {
 		return new Text(chunk.toString());
 	}
 
-	private static Text extractGeneralizedChunk(int chunkStart, int chunkEnd, List<Token> tokens, List<String> neTags, boolean appendPOSTag) {
+	private static Text extractGeneralizedChunk(int chunkStart, int chunkEnd, List<TratzParsedTokenWritable> tokens, boolean appendPOSTag) {
 		Text chunk = new Text();
 
 		int startPos;
 		for(startPos = chunkEnd; startPos >= chunkStart; startPos--) {
-			if(!tokens.get(startPos).getPos().startsWith("NN")) {
+			if(!tokens.get(startPos).getPosTag().toString().startsWith("NN")) {
 				break;
 			}
 		}
 		
 		if(startPos != chunkStart-1 && startPos != chunkEnd) {
-			Text generalChunk = extractMainChunk(startPos+1, chunkEnd+1, tokens, neTags, appendPOSTag);
+			Text generalChunk = extractMainChunk(startPos+1, chunkEnd+1, tokens, appendPOSTag);
 			if(generalChunk != null) {
 				chunk.set(generalChunk);
 			}
@@ -493,22 +529,24 @@ public class NLProcTools {
 		return chunk;
 	}
 
-	private static String getPOSSignature(List<Token> tokens, List<String> neTags, int chunkStart, int chunkEnd) {
+	private static String getPOSSignature(List<TratzParsedTokenWritable> tokens, int chunkStart, int chunkEnd) {
 		String signature = "";
 
 		for(int i = chunkStart; i < chunkEnd; i++) {
-			String term = tokens.get(i).getText();
-			String posTag = tokens.get(i).getPos();
-			String neTag = neTags.get(i);
+			TratzParsedTokenWritable t = tokens.get(i);
+
+			String term = t.getToken().toString();
+			String posTag = t.getPosTag().toString();
+			String neTag = t.getNETag().toString();
 
 			if(neTag.equals("LOCATION") || neTag.equals("PERSON") || neTag.equals("ORGANIZATION")) {
 				signature += "N";
 			}
+			else if(posTag.startsWith("NN") || posTag.equals("VBG") || posTag.equals("POS") || posTag.equals("CD") || posTag.startsWith("PR") || posTag.startsWith("WP")) {
+				signature += "N";
+			}
 			else if(posTag.startsWith("JJ")) {
 				signature += "A";
-			}
-			else if(posTag.startsWith("NN") || posTag.equals("VBG") || posTag.equals("POS") || posTag.equals("CD")) {
-				signature += "N";
 			}
 			else if(posTag.startsWith("IN") || posTag.startsWith("TO")) {
 				signature += "P";

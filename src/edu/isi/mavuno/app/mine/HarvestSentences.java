@@ -124,21 +124,6 @@ public class HarvestSentences extends Configured implements Tool {
 		
 	}
 
-//	private static class MyReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
-//		private final IntWritable mCount = new IntWritable();
-//		
-//		@Override
-//		public void reduce(Text key, Iterable<IntWritable> values, Reducer<Text, IntWritable, Text, IntWritable>.Context context) throws IOException, InterruptedException {
-//			int sum = 0;
-//			for(IntWritable c : values) {
-//				sum += c.get();
-//			}
-//			mCount.set(sum);
-//			context.write(key, mCount);
-//		}
-//
-//	}
-
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.util.Tool#run(java.lang.String[])
 	 */
@@ -179,7 +164,6 @@ public class HarvestSentences extends Configured implements Tool {
 		job.setOutputValueClass(IntWritable.class);
 
 		job.setMapperClass(MyMapper.class);
-//		job.setReducerClass(MyReducer.class);
 		job.setNumReduceTasks(0);
 
 		job.waitForCompletion(true);		

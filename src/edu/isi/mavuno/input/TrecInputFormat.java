@@ -33,6 +33,7 @@ import edu.isi.mavuno.input.XMLInputFormat.XMLRecordReader;
  * Hadoop <code>InputFormat</code> for processing the TREC collection.
  * 
  * @author Jimmy Lin
+ * @author metzler
  */
 public class TrecInputFormat extends IndexableFileInputFormat<LongWritable, TrecDocument> {
 

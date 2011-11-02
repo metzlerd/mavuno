@@ -25,6 +25,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 
 import edu.isi.mavuno.input.SentenceSegmentedDocument;
+import edu.isi.mavuno.nlp.NLProcTools;
 import edu.isi.mavuno.util.ContextPatternWritable;
 import edu.isi.mavuno.util.MavunoUtils;
 import edu.isi.mavuno.util.SentenceWritable;
@@ -124,17 +125,17 @@ public class DIRTExtractor extends Extractor {
 		// get sentence tokens
 		List<TratzParsedTokenWritable> tokens = sentence.getTokens();
 
+		// get chunk ids
+		int [] chunkIds = NLProcTools.getChunkIds(tokens);
+		
 		// get mapping from positions to chunks
 		Text [] chunks = new Text[tokens.size()];
 
 		Text curChunk = null;
-		Text lastNETag = new Text();
 		for(int i = 0; i < tokens.size(); i++) {
-			Text chunkTag = tokens.get(i).getChunkTag();
-			Text neTag = tokens.get(i).getNETag();
 			Text text = tokens.get(i).getToken();
-
-			if(curChunk == null || neTag.compareTo(lastNETag.getBytes(), 0, lastNETag.getLength()) != 0 || (neTag.getLength() == 1 && neTag.getBytes()[0] == 'O' && (chunkTag.getBytes()[0] == 'B' || chunkTag.getBytes()[0] == 'O'))) {
+			
+			if(i == 0 || (i > 0 && chunkIds[i] != chunkIds[i-1])) {
 				curChunk = new Text(text);
 			}
 			else {
@@ -143,7 +144,6 @@ public class DIRTExtractor extends Extractor {
 			}
 
 			chunks[i] = curChunk;
-			lastNETag.set(neTag);
 		}
 
 		// populate parse tree
@@ -211,16 +211,19 @@ public class DIRTExtractor extends Extractor {
 	}
 
 	private List<ContextPatternWritable> getContext(ArrayListOfInts leftPath, ArrayListOfInts rightPath, List<TratzParsedTokenWritable> tokens, Text[] chunks) { //, int leftContextSize, int rightContextSize) {
+		// construct (context, pattern) pairs
+		List<ContextPatternWritable> contexts = new ArrayList<ContextPatternWritable>();
+
 		// make sure that the dimensions are feasible
 		if(leftPath.size() < 1 || rightPath.size() < 1) {
-			return null;
+			return contexts;
 		}
 		
 		// make sure we don't split the left context's chunk
 		Text leftChunk = chunks[leftPath.get(0)-1];
 		for(int i = 1; i <= leftPath.size() - 1; i++) {
 			if(chunks[leftPath.get(i)-1].equals(leftChunk)) {
-				return null;
+				return contexts;
 			}
 		}
 
@@ -228,7 +231,7 @@ public class DIRTExtractor extends Extractor {
 		Text rightChunk = chunks[rightPath.get(0)-1];
 		for(int i = rightPath.size() - 1; i >= 1; i--) {
 			if(chunks[rightPath.get(i)-1].equals(rightChunk)) {
-				return null;
+				return contexts;
 			}
 		}
 		
@@ -347,9 +350,6 @@ public class DIRTExtractor extends Extractor {
 				pattern.append(rightChunkTag.getBytes(), 0, rightChunkTag.getLength());				
 			}
 		}
-
-		// construct (context, pattern) pairs
-		List<ContextPatternWritable> contexts = new ArrayList<ContextPatternWritable>();
 		
 		if(mOrContextStyle) {
 			if(!mRightOnlyContextStyle) {

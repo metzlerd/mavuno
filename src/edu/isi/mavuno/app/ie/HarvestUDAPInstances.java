@@ -17,7 +17,10 @@
 package edu.isi.mavuno.app.ie;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
@@ -40,6 +43,7 @@ import tratz.parse.types.Token;
 import edu.isi.mavuno.nlp.NLProcTools;
 import edu.isi.mavuno.util.ContextPatternWritable;
 import edu.isi.mavuno.util.MavunoUtils;
+import edu.isi.mavuno.util.TratzParsedTokenWritable;
 import edu.stanford.nlp.ling.Word;
 import edu.umd.cloud9.collection.Indexable;
 import edu.umd.cloud9.util.map.HMapKF;
@@ -54,8 +58,15 @@ public class HarvestUDAPInstances extends Configured implements Tool {
 
 	private static final Logger sLogger = Logger.getLogger(HarvestUDAPInstances.class);
 
-	private static final int MAX_ITERATIONS = 10;
+	private static enum MyCounters {
+		MATCHED_SENTENCES,
+		TOTAL_SENTENCES
+	}
 
+	// TODO: make these configurable
+	private static final float LAMBDA = 0.7f;
+	private static final int MAX_ITERATIONS = 25;
+	
 	public HarvestUDAPInstances(Configuration conf) {
 		super(conf);
 	}
@@ -96,13 +107,14 @@ public class HarvestUDAPInstances extends Configured implements Tool {
 				return;
 			}
 
-			sLogger.info("Currently harvesting from document " + docId);
-
 			// tokenize the document, strip any XML tags, and split into sentences
 			List<List<Word>> sentences = mTextUtils.getTagStrippedSentences(text);
 
 			// process each sentence
 			for(List<Word> sentence : sentences) {
+				// bookkeeping
+				context.getCounter(MyCounters.TOTAL_SENTENCES).increment(1L);
+
 				// check if this sentence contains the pattern "X such as Y"
 				boolean matches = false;
 				int matchPos = -1;
@@ -121,12 +133,13 @@ public class HarvestUDAPInstances extends Configured implements Tool {
 					continue;
 				}
 
-				// if so, then process sentence further...
-
 				// skip very long sentences
 				if(sentence.size() > NLProcTools.MAX_SENTENCE_LENGTH) {
 					continue;
 				}
+
+				// bookkeeping
+				context.getCounter(MyCounters.MATCHED_SENTENCES).increment(1L);
 
 				// set the sentence to be processed
 				mTextUtils.setSentence(sentence);
@@ -145,8 +158,11 @@ public class HarvestUDAPInstances extends Configured implements Tool {
 					tokens.get(0).setText(tokens.get(0).getText().toLowerCase());
 				}
 
+				// created tagged tokens
+				List<TratzParsedTokenWritable> taggedTokens = NLProcTools.getTaggedTokens(tokens, posTags, neTags);
+				
 				// assign chunk ids to each position within the sentence
-				int [] chunkIds = NLProcTools.getChunkIds(tokens, neTags);
+				int [] chunkIds = NLProcTools.getChunkIds(taggedTokens, true);
 
 				// chunks should not contain the "such as" pattern
 				int suchChunkId = chunkIds[matchPos];
@@ -157,11 +173,11 @@ public class HarvestUDAPInstances extends Configured implements Tool {
 
 				// get X chunks
 				int xChunkId = suchChunkId - 1;
-				Set<Text> xChunks = NLProcTools.extractChunks(xChunkId, chunkIds, tokens, neTags, true, true, false, false);
+				Set<Text> xChunks = NLProcTools.extractChunks(xChunkId, chunkIds, taggedTokens, true, true, false, false);
 
 				// get Y chunks
 				int yChunkId = asChunkId + 1;
-				Set<Text> yChunks = NLProcTools.extractChunks(yChunkId, chunkIds, tokens, neTags, false, true, false, false);
+				Set<Text> yChunks = NLProcTools.extractChunks(yChunkId, chunkIds, taggedTokens, false, true, false, false);
 
 				// emit cross product of X and Y chunks
 				for(Text xChunk : xChunks) {
@@ -178,51 +194,84 @@ public class HarvestUDAPInstances extends Configured implements Tool {
 
 		private final DoubleWritable mValue = new DoubleWritable();
 
-		// maps from instances to frequency
-		private final HMapKL<String> mInstanceFreq = new HMapKL<String>();
-
 		// maps from lists of instances to frequency
 		private final HMapKL<Text> mListFreq = new HMapKL<Text>();
+
+		// maps from instances to frequency
+		private final HMapKL<String> mInstancesFreq = new HMapKL<String>();
+
+		// maps from lists of instances to sets of instances
+		private final Map<Text,Set<String>> mListInstances = new HashMap<Text,Set<String>>();
+
+		// maps from instances to sets of lists of instances
+		private final Map<String,Set<Text>> mInstancesList = new HashMap<String,Set<Text>>();
 
 		@Override
 		public void reduce(Text key, Iterable<Text> values, Reducer<Text, Text, Text, DoubleWritable>.Context context) throws IOException, InterruptedException {
 			// maps from instances to probabilities
-			HMapKF<String> instanceProb = new HMapKF<String>();
+			HMapKF<String> instanceProbs = new HMapKF<String>();
 
-			// maps from lists of instances to weights
-			HMapKF<Text> listWeight = new HMapKF<Text>();
+			// maps from lists of instances to proabilities
+			HMapKF<Text> listProbs = new HMapKF<Text>();
 
-			mInstanceFreq.clear();
 			mListFreq.clear();
+			mInstancesFreq.clear();
+			
+			mListInstances.clear();
+			mInstancesList.clear();
 
 			long totalInstances = 0;
 
 			for(Text value : values) {
+				
+				Text list = new Text(value);
+				
+				Set<String> instanceSet = mListInstances.get(value);
+				if(instanceSet == null) {
+					instanceSet = new HashSet<String>();
+					mListInstances.put(list, instanceSet);
+				}
+				
+				// split list into individual instances
 				String [] instances = value.toString().split(NLProcTools.SEPARATOR);
+				
 				for(String instance : instances) {
-					mInstanceFreq.increment(instance);
-					instanceProb.put(instance, 1);
+					instanceSet.add(instance);
+					
+					Set<Text> listSet = mInstancesList.get(instance);
+					if(listSet == null) {
+						listSet = new HashSet<Text>();
+						mInstancesList.put(instance, listSet);
+					}
+					listSet.add(list);
+
+					mInstancesFreq.increment(instance);
+					instanceProbs.put(instance, 1);
 				}
 
-				mListFreq.increment(new Text(value));
-				listWeight.put(new Text(value), 1);
+				mListFreq.increment(list);
+				listProbs.put(list, instances.length);
 
 				totalInstances += instances.length;
 			}
 
+			// normalize probabilities
+			normalizeProbs(listProbs);
+			normalizeProbs(instanceProbs);
+			
 			for(int iter = 0; iter < MAX_ITERATIONS; iter++) {
 				// update list weights
-				listWeight = updateListWeights(listWeight, instanceProb);
+				listProbs = updateListProbs(listProbs, instanceProbs, context);
 
 				// update instance probabilities
-				instanceProb = updateInstanceProbs(listWeight, instanceProb);
+				instanceProbs = updateInstanceProbs(listProbs, instanceProbs, context);				
 			}
 
 			// add total count to output
-			instanceProb.put(ContextPatternWritable.ASTERISK_STRING, totalInstances);
+			instanceProbs.put(ContextPatternWritable.ASTERISK_STRING, totalInstances);
 
 			// sort the instances in descending order of their likelihood			
-			for(MapKF.Entry<String> entry : instanceProb.getEntriesSortedByValue()) {
+			for(MapKF.Entry<String> entry : instanceProbs.getEntriesSortedByValue()) {
 				String instance = entry.getKey();
 				float prob = entry.getValue();
 				mValue.set(prob);
@@ -230,51 +279,69 @@ public class HarvestUDAPInstances extends Configured implements Tool {
 			}
 		}
 
-		private HMapKF<Text> updateListWeights(HMapKF<Text> weights, HMapKF<String> probs) {
-			HMapKF<Text> newWeights = new HMapKF<Text>();
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		private void normalizeProbs(HMapKF probs) {
+			Set<Comparable> keys = probs.keySet();
 
-			for(Text list : weights.keySet()) {
+			float total = 0;
+			for(Comparable key : keys) {
+				total += probs.get(key);
+			}
+			
+			for(Comparable key : keys) {
+				probs.put(key, probs.get(key) / total);
+			}			
+		}
+		
+		private HMapKF<Text> updateListProbs(HMapKF<Text> listProbs, HMapKF<String> instanceProbs, Reducer<Text, Text, Text, DoubleWritable>.Context context) {
+			HMapKF<Text> newProbs = new HMapKF<Text>();
+
+			// the set of lists
+			Set<Text> lists = listProbs.keySet();
+			
+			// static weight ("random surfer")
+			float staticWeight = (1-LAMBDA) * (1.0f / lists.size());
+			
+			for(Text list : lists) {
 				float newWeight = 0;
 
-				String [] instances = list.toString().split(NLProcTools.SEPARATOR);
-				for(String instance : instances) {
-					newWeight += probs.get(instance);
+				// dynamic weight
+				for(String instance : mListInstances.get(list)) {
+					newWeight += instanceProbs.get(instance) * mListFreq.get(list) / mInstancesFreq.get(instance);
 				}
 
-				newWeights.put(list, newWeight);
+				// update probability
+				newProbs.put(list, staticWeight + LAMBDA * newWeight);
+
+				// let hadoop know we've made some progress
+				context.progress();
 			}
 
-			return newWeights;
+			return newProbs;
 		}
 
-		private HMapKF<String> updateInstanceProbs(HMapKF<Text> weights, HMapKF<String> probs) {
+		private HMapKF<String> updateInstanceProbs(HMapKF<Text> listProbs, HMapKF<String> instanceProbs, Reducer<Text, Text, Text, DoubleWritable>.Context context) {
 			HMapKF<String> newProbs = new HMapKF<String>();
 
-			for(String instance : probs.keySet()) {
-				long totalMatches = 0;
-				long totalLists = 0;
+			// the set of instances
+			Set<String> instances = instanceProbs.keySet();
+			
+			// static weight ("random surfer")
+			float staticWeight = (1-LAMBDA) * (1.0f / instances.size());
+			
+			for(String instance : instances) {
+				float newWeight = 0;
 
-				for(Text list : weights.keySet()) {
-					boolean matches = false;
-
-					String [] instances = list.toString().split(NLProcTools.SEPARATOR);
-					for(String i : instances) {
-						if(instance.equals(i)) {
-							matches = true;
-							break;
-						}
-					}
-
-					long listFreq = mListFreq.get(list);
-
-					if(matches) {
-						totalMatches += listFreq;
-					}
-
-					totalLists += listFreq;
+				// dynamic weight
+				for(Text list : mInstancesList.get(instance)) {
+					newWeight += listProbs.get(list) * (1.0 / mListInstances.get(list).size());
 				}
 
-				newProbs.put(instance, (float)totalMatches / (float)totalLists);
+				// update probability
+				newProbs.put(instance, staticWeight + LAMBDA * newWeight);
+
+				// let hadoop know we've made some progress
+				context.progress();
 			}
 
 			return newProbs;
