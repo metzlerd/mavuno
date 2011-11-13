@@ -39,10 +39,10 @@ import org.apache.log4j.Logger;
 import edu.isi.mavuno.extract.CombineGlobalStats;
 import edu.isi.mavuno.extract.Extractor;
 import edu.isi.mavuno.extract.Split;
+import edu.isi.mavuno.input.Indexable;
 import edu.isi.mavuno.util.ContextPatternStatsWritable;
 import edu.isi.mavuno.util.ContextPatternWritable;
 import edu.isi.mavuno.util.MavunoUtils;
-import edu.umd.cloud9.collection.Indexable;
 import edu.umd.cloud9.util.map.HMapKL;
 
 /**

@@ -22,7 +22,6 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.WritableUtils;
 
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * Object representing a TREC document.

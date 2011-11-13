@@ -24,10 +24,10 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 
+import edu.isi.mavuno.input.Indexable;
 import edu.isi.mavuno.input.TwitterDocument;
 import edu.isi.mavuno.util.ContextPatternWritable;
 import edu.isi.mavuno.util.MavunoUtils;
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * @author metzler

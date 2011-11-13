@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 
+import edu.isi.mavuno.input.Indexable;
 import edu.isi.mavuno.input.SentenceSegmentedDocument;
 import edu.isi.mavuno.nlp.NLProcTools;
 import edu.isi.mavuno.util.ContextPatternWritable;
@@ -31,7 +32,6 @@ import edu.isi.mavuno.util.MavunoUtils;
 import edu.isi.mavuno.util.PermutationGenerator;
 import edu.isi.mavuno.util.SentenceWritable;
 import edu.isi.mavuno.util.TratzParsedTokenWritable;
-import edu.umd.cloud9.collection.Indexable;
 
 public class NAryChunkExtractor extends Extractor {
 

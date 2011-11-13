@@ -1,0 +1,32 @@
+<ivy-module version="2.0">
+  <info organisation="edu.isi" module="mavuno" revision="${version}"/>
+  <publications>
+    <artifact type="pom" ext="pom" conf="default"/>
+    <artifact type="jar" ext="jar" conf="default"/>
+  </publications>
+
+  <dependencies>
+
+    <!-- Hadoop -->
+    <dependency org="org.apache.hadoop" name="hadoop-core" rev="0.20.2" />
+
+    <!-- Google Guava -->
+    <dependency org="com.google.guava" name="guava" rev="r09" />
+
+    <!-- Log4j -->
+    <dependency org="log4j" name="log4j" rev="1.2.16" />
+
+    <!-- Stanford Core NLP -->
+    <dependency org="edu.stanford" name="stanford-corenlp" rev="2011-09-16" />
+    <dependency org="edu.stanford" name="stanford-corenlp" rev="2011-09-14-models" />
+    <dependency org="joda-time" name="joda-time" rev="2.0" />
+    <dependency org="xom" name="xom" rev="1.2.5" />
+
+    <!-- FANSE Parser -->
+    <dependency org="edu.isi" name="fanseparser" rev="0.2.2" />
+
+    <!-- OpenNLP -->
+    <dependency org="org.apache.opennlp" name="opennlp-tools" rev="1.5.1-incubating" />
+
+   </dependencies>
+</ivy-module>

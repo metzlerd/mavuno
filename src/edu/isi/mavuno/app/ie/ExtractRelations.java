@@ -360,6 +360,7 @@ public class ExtractRelations extends Configured implements Tool {
 
 						// skip if we can't find an alignment for some reason
 						if(argOffset == -1) {
+							sLogger.warn("Can't find alignment for: " + arg + " in sentence: " + sentenceText);
 							continue;
 						}
 
@@ -406,14 +407,15 @@ public class ExtractRelations extends Configured implements Tool {
 						Text [] expectedNames = mArgNames.get(pair.id);
 						Text [] expectedTypes = mArgTypes.get(pair.id);
 						Text [] expectedClasses = mArgClasses.get(pair.id);
-
-						// skip this pair if we're missing name and/or type information
+						
+						// uh oh, we're missing name and/or type information
 						if(expectedNames == null || expectedTypes == null || expectedClasses == null) {
-							continue;
+							throw new RuntimeException("Missing name, type, and/or class information for: " + pair);
 						}
 
 						// perform length count checking
 						if(expectedClasses.length != expectedNames.length || expectedNames.length != expectedTypes.length || expectedTypes.length != allArgClasses.size()) {
+							sLogger.warn("Argument length mismatch for: " + pair + " -- skipping!");
 							continue;
 						}
 
@@ -694,6 +696,7 @@ public class ExtractRelations extends Configured implements Tool {
 			return new IntPair(beginPos, tokens.getNumTokens() - beginPos);
 		}
 
+		// TODO: there has to be a better way...
 		private int getOffset(Text text, String sentence) {
 			String paddedText = " " + text + " ";
 
@@ -702,6 +705,17 @@ public class ExtractRelations extends Configured implements Tool {
 				if(sentence.charAt(i) == ' ') {
 					offset++;
 				}
+				
+				if(i == 0) {
+					paddedText = text + " ";
+				}
+				else if(i == 1) {
+					paddedText = " " + text + " ";
+				}
+				else if(i == sentence.length() - text.getLength() - 1) {
+					paddedText = " " + text;
+				}
+				
 				if(sentence.regionMatches(i, paddedText, 0, paddedText.length())) {
 					return offset;
 				}
@@ -775,7 +789,7 @@ public class ExtractRelations extends Configured implements Tool {
 			for(int i = offset; i < offset + length; i++) {
 				tokens[i-offset] = new Text(sentence.getTokenAt(i).getToken().toString());
 			}
-
+			
 			Set<IdWeightPair> matches = new HashSet<IdWeightPair>();
 
 			Text pattern = new Text();

@@ -44,11 +44,11 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
+import edu.isi.mavuno.input.Indexable;
 import edu.isi.mavuno.input.SentenceSegmentedDocument;
 import edu.isi.mavuno.nlp.NLProcTools;
 import edu.isi.mavuno.util.MavunoUtils;
 import edu.isi.mavuno.util.SentenceWritable;
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * @author metzler

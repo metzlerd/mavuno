@@ -39,6 +39,7 @@ import org.apache.log4j.Logger;
 
 import tratz.parse.types.Arc;
 import tratz.parse.types.Token;
+import edu.isi.mavuno.input.Indexable;
 import edu.isi.mavuno.input.TratzParsedDocument;
 import edu.isi.mavuno.nlp.NLProcTools;
 import edu.isi.mavuno.util.MavunoUtils;
@@ -46,7 +47,6 @@ import edu.isi.mavuno.util.SentenceWritable;
 import edu.isi.mavuno.util.TokenFactory;
 import edu.isi.mavuno.util.TratzParsedTokenWritable;
 import edu.stanford.nlp.ling.Word;
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * @author metzler

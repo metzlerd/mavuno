@@ -20,8 +20,8 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 
+import edu.isi.mavuno.input.Indexable;
 import edu.isi.mavuno.util.ContextPatternWritable;
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * @author metzler

@@ -25,7 +25,6 @@ import java.util.List;
 import edu.isi.mavuno.util.SentenceWritable;
 import edu.isi.mavuno.util.TokenFactory;
 import edu.isi.mavuno.util.TokenWritable;
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * @author metzler

@@ -50,7 +50,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
-import edu.umd.cloud9.collection.clue.ClueWarcRecord;
 
 public class ClueWarcInputFormat extends FileInputFormat<LongWritable, ClueWarcRecord> {
 

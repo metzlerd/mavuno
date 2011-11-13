@@ -39,11 +39,11 @@ import org.apache.hadoop.util.Tool;
 import org.apache.log4j.Logger;
 
 import edu.isi.mavuno.extract.Extractor;
+import edu.isi.mavuno.input.Indexable;
 import edu.isi.mavuno.util.ContextPatternStatsWritable;
 import edu.isi.mavuno.util.ContextPatternWritable;
 import edu.isi.mavuno.util.IdWeightPair;
 import edu.isi.mavuno.util.MavunoUtils;
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * @author metzler
@@ -117,14 +117,14 @@ public class Extract extends Configured implements Tool {
 					key = new Text(pattern);
 				}
 
-				updateContextMap(key, pair);
+				updateExamples(key, pair);
 			}
 
 			// close current reader
 			reader.close();
 		}
 
-		private void updateContextMap(Text key, IdWeightPair pair) {
+		private void updateExamples(Text key, IdWeightPair pair) {
 			// populate context map
 			List<IdWeightPair> contextList = null;
 			contextList = mExamples.get(key);
@@ -138,6 +138,26 @@ public class Extract extends Configured implements Tool {
 			}
 		}
 
+		private void outputDummyMatches(Mapper<Writable, Indexable, ContextPatternWritable, ContextPatternStatsWritable>.Context context) throws IOException, InterruptedException {
+			final ContextPatternStatsWritable dummyStats = new ContextPatternStatsWritable(0L, 0L, 0L, 0.0, 0.0);
+			for(Text key : mExamples.keySet()) {
+				List<IdWeightPair> contextList = mExamples.get(key);
+				for(IdWeightPair pair : contextList) {
+					mPair.setId(pair.id);
+					
+					if(mPatternTarget) {
+						mPair.setPattern(key);
+					}
+					else if(mContextTarget) {
+						mPair.setContext(key);
+					}
+
+					dummyStats.weight = pair.weight;
+					context.write(mPair, dummyStats);
+				}
+			}
+		}
+		
 		@Override
 		public void setup(Mapper<Writable, Indexable, ContextPatternWritable, ContextPatternStatsWritable>.Context context) throws IOException {
 			Configuration conf = context.getConfiguration();
@@ -162,6 +182,10 @@ public class Extract extends Configured implements Tool {
 				// load target examples into memory
 				String examplesPath = conf.get("Mavuno.Extract.InputPath", null);
 				loadExamples(examplesPath, conf);
+				
+				// print "dummy" matches to ensure that all examples (not just those that match something)
+				// show up in the remainder of the pipeline
+				outputDummyMatches(context);
 			}
 			catch(Exception e) {
 				throw new RuntimeException(e);

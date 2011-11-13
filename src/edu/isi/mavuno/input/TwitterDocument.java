@@ -27,7 +27,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * @author metzler

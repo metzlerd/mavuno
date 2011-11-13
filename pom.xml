@@ -1,0 +1,18 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.isi</groupId>
+  <artifactId>mavuno</artifactId>
+  <version>0.1</version>
+  <name>Mavuno</name>
+  <description>Mavuno: A Hadoop-Based Text Mining Toolkit</description>
+  <url>http://mavuno.isi.edu</url>
+  <organization>
+  	<name>University of Southern California - Information Sciences Institute</name>
+  	<url>http://www.isi.edu</url>
+  </organization>
+  <scm>
+  	<url>scm:git@github.com:metzlerd/mavuno.git</url>
+  	<connection>scm:git@github.com:metzlerd/mavuno.git</connection>
+  	<developerConnection>scm:git@github.com:metzlerd/mavuno.git</developerConnection>
+  </scm>
+</project>

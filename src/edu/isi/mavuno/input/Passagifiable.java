@@ -16,7 +16,6 @@
 
 package edu.isi.mavuno.input;
 
-import edu.umd.cloud9.collection.Indexable;
 
 public interface Passagifiable {
 

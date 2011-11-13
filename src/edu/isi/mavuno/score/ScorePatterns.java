@@ -123,8 +123,8 @@ public class ScorePatterns extends Configured implements Tool {
 		private double mNorm;
 
 		// pattern stats
-		private int mNumPatterns = 0;
-		private double mTotalPatternWeight = 0.0;
+		private int mNumContexts = 0;
+		private double mTotalContextWeight = 0.0;
 
 		// scorer
 		private Scorer mScorer = null;
@@ -150,31 +150,31 @@ public class ScorePatterns extends Configured implements Tool {
 			double patternScore = 0.0;
 			double staticScore = 0.0;
 			for(ScoreWritable value : values) {
-				patternScore += value.score;
+				patternScore = mScorer.updateScore(patternScore, value.score);
 				staticScore = value.staticScore; // this should be equal across all contexts for a given pattern
-				totalNorm += value.norm;
+				totalNorm = mScorer.updateNorm(totalNorm, value.norm);
 			}
 
 			if(key.getPattern().equals(ContextPatternWritable.ASTERISK) && key.getContext().equals(ContextPatternWritable.ASTERISK)) {
 				mNorm = totalNorm;
 
 				mLastContext.clear();
-				mNumPatterns = 0;
-				mTotalPatternWeight = 0.0;
+				mNumContexts = 0;
+				mTotalContextWeight = 0.0;
 
 				return;
 			}
 
 			if(key.getPattern().equals(ContextPatternWritable.ASTERISK)) {
 				if(!mLastContext.equals(key.getContext())) {
-					mNumPatterns++;
-					mTotalPatternWeight += staticScore;
+					mNumContexts++;
+					mTotalContextWeight += staticScore;
 					mLastContext.set(key.getContext());
 				}
 				return;
 			}
 
-			mResult.set(mScorer.finalizeScore(patternScore, staticScore, mNorm, mNumPatterns, mTotalPatternWeight));
+			mResult.set(mScorer.finalizeScore(patternScore, staticScore, mNorm, mNumContexts, mTotalContextWeight));
 
 			context.write(key, mResult);
 		}

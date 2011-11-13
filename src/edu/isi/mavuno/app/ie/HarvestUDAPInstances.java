@@ -40,12 +40,12 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
 import tratz.parse.types.Token;
+import edu.isi.mavuno.input.Indexable;
 import edu.isi.mavuno.nlp.NLProcTools;
 import edu.isi.mavuno.util.ContextPatternWritable;
 import edu.isi.mavuno.util.MavunoUtils;
 import edu.isi.mavuno.util.TratzParsedTokenWritable;
 import edu.stanford.nlp.ling.Word;
-import edu.umd.cloud9.collection.Indexable;
 import edu.umd.cloud9.util.map.HMapKF;
 import edu.umd.cloud9.util.map.HMapKL;
 import edu.umd.cloud9.util.map.MapKF;

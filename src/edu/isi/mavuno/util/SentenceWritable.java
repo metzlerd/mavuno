@@ -110,10 +110,12 @@ public class SentenceWritable<T extends TokenWritable> implements Writable {
 
 	public String toStringOfTokens() {
 		StringBuffer buf = new StringBuffer();
-		
-		for(T token : mTokens) {
-			buf.append(token.getToken());
-			buf.append(' ');
+
+		for(int i = 0; i < mTokens.size(); i++) {
+			buf.append(mTokens.get(i).getToken());
+			if(i != mTokens.size() - 1) {
+				buf.append(' ');
+			}
 		}
 		
 		return buf.toString();

@@ -150,9 +150,9 @@ public class ScoreContexts extends Configured implements Tool {
 			double contextScore = 0.0;
 			double staticScore = 0.0;
 			for(ScoreWritable value : values) {
-				contextScore += value.score;
+				contextScore = mScorer.updateScore(contextScore, value.score);
 				staticScore = value.staticScore; // this should be equal across all patterns for a given context
-				totalNorm += value.norm;
+				totalNorm = mScorer.updateNorm(totalNorm, value.norm);
 			}
 
 			if(key.getPattern().equals(ContextPatternWritable.ASTERISK) && key.getContext().equals(ContextPatternWritable.ASTERISK)) {

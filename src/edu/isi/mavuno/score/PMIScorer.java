@@ -46,7 +46,7 @@ public class PMIScorer extends Scorer {
 			String [] params = paramSpec.split(":");
 
 			if(params.length == 0 || params.length > 2) {
-				throw new RuntimeException("Invalid CosineScorer arguments --" + params);
+				throw new RuntimeException("Invalid PMIScorer arguments --" + params);
 			}
 
 			String weightType = params[0].toLowerCase().trim();

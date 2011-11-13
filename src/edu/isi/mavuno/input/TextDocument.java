@@ -20,7 +20,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * @author metzler

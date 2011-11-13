@@ -53,6 +53,16 @@ public abstract class Scorer {
 	// scores a context
 	public abstract void scoreContext(ContextPatternWritable context, ContextPatternStatsWritable stats, ScoreWritable result);
 
+	// update the score (override to implement other types of score updates)
+	public double updateScore(double curTotalScore, double score) {
+		return curTotalScore + score;
+	}
+
+	// update the norm (override to implement other types of norm updates)
+	public double updateNorm(double curTotalNorm, double norm) {
+		return curTotalNorm + norm;
+	}
+
 	// finalize score
 	public abstract double finalizeScore(double matchScore, double staticScore, double norm, int numPatterns, double totalPatternWeight);
 }

@@ -18,7 +18,6 @@ package edu.isi.mavuno.input;
 
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
-import edu.umd.cloud9.collection.Indexable;
 
 /**
  * Abstract class representing a <code>FileInputFormat</code> for
