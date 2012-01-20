@@ -17,6 +17,7 @@
 package edu.isi.mavuno.score;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -83,7 +84,7 @@ public class TFIDFScorer extends Scorer {
 				}
 			}
 			else {
-				throw new RuntimeException("Invalid TFIDFScorer arguments --" + params);
+				throw new RuntimeException("Invalid TFIDFScorer arguments --" + Arrays.toString(params));
 			}
 		}
 	}

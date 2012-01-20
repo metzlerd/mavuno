@@ -85,6 +85,9 @@ public class Relation {
 	
 	@Override
 	public boolean equals(Object o) {
+		if(o == null) {
+			return false;
+		}
 		return toString().compareTo(o.toString()) == 0;
 	}
 	

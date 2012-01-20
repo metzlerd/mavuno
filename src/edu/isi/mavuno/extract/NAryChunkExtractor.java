@@ -321,7 +321,7 @@ public class NAryChunkExtractor extends Extractor {
 		return chunk;
 	}
 
-	public class Chunk {
+	public static class Chunk {
 		public final Text text = new Text();
 		public final Text type = new Text();
 	}

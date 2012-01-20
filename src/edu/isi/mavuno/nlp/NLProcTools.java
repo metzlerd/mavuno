@@ -71,7 +71,7 @@ public class NLProcTools {
 	public static final int MAX_SENTENCE_LENGTH = 100;
 
 	public static final String DEFAULT_CHUNKER_MODEL = "models/en-chunker.bin";
-	public static final String DEFAULT_NER_MODEL = "models/all.3class.distsim.crf.ser.gz";
+	public static final String DEFAULT_NER_MODEL = "models/muc.7class.distsim.crf.ser.gz";
 	public static final String DEFAULT_SENTENCE_MODEL = "models/en-sent.bin";
 	public static final String DEFAULT_TRATZ_POS_MODEL = "models/tratzPosTaggingModel.gz";
 	public static final String DEFAULT_TRATZ_PARSER_MODEL = "models/tratzParseModel.gz";

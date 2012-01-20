@@ -351,7 +351,6 @@ public class Extract extends Configured implements Tool {
 		FileOutputFormat.setCompressOutput(job, true);
 		SequenceFileOutputFormat.setOutputCompressionType(job, SequenceFile.CompressionType.BLOCK);
 
-		job.setMapOutputKeyClass(ContextPatternWritable.class);
 		if("pattern".equals(extractorTarget)) {
 			job.setSortComparatorClass(ContextPatternWritable.Comparator.class);
 			job.setPartitionerClass(ContextPatternWritable.IdContextPartitioner.class);
@@ -363,6 +362,8 @@ public class Extract extends Configured implements Tool {
 		else {
 			throw new RuntimeException("Invalid extractor target in Extract -- " + extractorTarget);
 		}
+
+		job.setMapOutputKeyClass(ContextPatternWritable.class);
 		job.setMapOutputValueClass(ContextPatternStatsWritable.class);
 
 		job.setOutputKeyClass(ContextPatternWritable.class);

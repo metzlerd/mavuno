@@ -46,6 +46,19 @@ public class IdWeightPair implements Comparable<IdWeightPair> {
 	}
 	
 	@Override
+	public boolean equals(Object o) {
+		if(o == null || !(o instanceof IdWeightPair)) {
+			return false;
+		}
+		return compareTo((IdWeightPair)o) == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Float.valueOf(weight).hashCode();
+	}
+	
+	@Override
 	public String toString() {
 		return "[id=" + id + ", weight=" + weight + "]";
 	}

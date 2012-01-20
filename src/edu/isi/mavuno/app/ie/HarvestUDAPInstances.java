@@ -78,20 +78,29 @@ public class HarvestUDAPInstances extends Configured implements Tool {
 
 		@Override
 		public void setup(Mapper<Writable, Indexable, Text, Text>.Context context) throws IOException {
+			// initialize WordNet (needed by POS tagger)
 			try {
-				// initialize WordNet (needed by POS tagger)
 				mTextUtils.initializeWordNet();
-
-				// initialize POS tagger
+			}
+			catch(Exception e) {
+				throw new RuntimeException("Error initializing WordNet instance -- " + e);
+			}
+			
+			// initialize POS tagger
+			try {
 				mTextUtils.initializePOSTagger();
+			}
+			catch(Exception e) {
+				throw new RuntimeException("Error initializing POS tagger -- " + e);
+			}
 
-				// initialize named entity tagger
+			// initialize named entity tagger
+			try {
 				mTextUtils.initializeNETagger();
 			}
-			catch(ClassNotFoundException e) {
-				throw new RuntimeException(e);
+			catch(Exception  e) {
+				throw new RuntimeException("Error initializing named entity tagger -- " + e);
 			}
-
 		}
 
 		@Override

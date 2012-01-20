@@ -44,4 +44,17 @@ public class ContextPatternWritableScorePair implements Comparable<ContextPatter
 			return 0;
 		}
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == null || !(o instanceof ContextPatternWritableScorePair)) {
+			return false;
+		}
+		return compareTo((ContextPatternWritableScorePair)o) == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Double.valueOf(this.score.get()).hashCode();
+	}
 }

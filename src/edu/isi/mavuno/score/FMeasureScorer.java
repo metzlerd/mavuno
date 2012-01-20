@@ -17,6 +17,7 @@
 package edu.isi.mavuno.score;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -44,7 +45,7 @@ public class FMeasureScorer extends Scorer {
 			String [] params = paramSpec.split(":");
 
 			if(params.length != 1) {
-				throw new RuntimeException("Invalid FMeasureScorer arguments --" + params);
+				throw new RuntimeException("Invalid FMeasureScorer arguments --" + Arrays.toString(params));
 			}
 
 			mLambda = Float.parseFloat(params[0]);

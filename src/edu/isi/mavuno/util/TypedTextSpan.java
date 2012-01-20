@@ -51,6 +51,9 @@ public class TypedTextSpan {
 	
 	@Override
 	public boolean equals(Object o) {
+		if(o == null) {
+			return false;
+		}
 		return toString().compareTo(o.toString()) == 0;
 	}	
 

@@ -21,17 +21,19 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.io.WritableComparable;
 
 /**
  * @author metzler
  *
  */
-public class PairWritable<A extends Writable, B extends Writable> implements Writable {
+public abstract class PairWritable<A extends Writable, B extends Writable> implements WritableComparable<PairWritable<A,B>> {
 
 	public A left;
 	public B right;
 	
 	public PairWritable() {
+		super();
 	}
 	
 	public PairWritable(A left, B right) {
@@ -61,4 +63,7 @@ public class PairWritable<A extends Writable, B extends Writable> implements Wri
 	public String toString() {
 		return left.toString() + "\t" + right.toString();
 	}
+
+	@Override
+	public abstract int compareTo(PairWritable<A, B> obj);
 }

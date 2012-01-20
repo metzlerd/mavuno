@@ -29,7 +29,7 @@ import org.apache.hadoop.io.Writable;
  */
 public class TokenWritable implements Writable {
 
-	public static final String SEP = new String("\t");
+	public static final String SEP = "\t";
 
 	// token
 	private final Text mToken = new Text();

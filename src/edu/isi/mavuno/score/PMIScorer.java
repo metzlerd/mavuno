@@ -17,6 +17,7 @@
 package edu.isi.mavuno.score;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -46,7 +47,7 @@ public class PMIScorer extends Scorer {
 			String [] params = paramSpec.split(":");
 
 			if(params.length == 0 || params.length > 2) {
-				throw new RuntimeException("Invalid PMIScorer arguments --" + params);
+				throw new RuntimeException("Invalid PMIScorer arguments --" + Arrays.toString(params));
 			}
 
 			String weightType = params[0].toLowerCase().trim();

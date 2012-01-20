@@ -41,7 +41,7 @@ public class ContextPatternWritable implements Writable {
 	public static final int EOW_BYTES_LENGTH = EOW.getLength();
 
 	public static final Text ASTERISK = new Text("\u0003");
-	public static final String ASTERISK_STRING = new String("\u0003");
+	public static final String ASTERISK_STRING = "\u0003";
 
 	public static final Text TAB = new Text("\t");
 	public static final byte [] TAB_BYTES = TAB.getBytes();

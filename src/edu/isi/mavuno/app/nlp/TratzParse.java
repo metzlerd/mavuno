@@ -89,24 +89,44 @@ public class TratzParse extends Configured implements Tool {
 
 		@Override
 		public void setup(Mapper<Writable, Indexable, Text, TratzParsedDocument>.Context context) throws IOException {
+			// initialize WordNet (needed by POS tagger)
 			try {
-				// initialize POS tagger
-				mTextUtils.initializePOSTagger();
-
-				// initialize WordNet (needed by POS tagger)
 				mTextUtils.initializeWordNet();
+			}
+			catch(Exception e) {
+				throw new RuntimeException("Error initializing WordNet instance -- " + e);
+			}
 
-				// initialize chunker
+			// initialize POS tagger
+			try {
+				mTextUtils.initializePOSTagger();
+			}
+			catch(Exception e) {
+				throw new RuntimeException("Error initializing POS tagger -- " + e);
+			}
+
+			// initialize chunker
+			try {
 				mTextUtils.initializeChunker();
+			}
+			catch(Exception e) {
+				throw new RuntimeException("Error initializing chunker -- " + e);
+			}
 
-				// initialize named entity tagger
+			// initialize named entity tagger
+			try {
 				mTextUtils.initializeNETagger();
+			}
+			catch(Exception e) {
+				throw new RuntimeException("Error initializing named entity tagger -- " + e);
+			}
 
-				// initialize parser
+			// initialize parser
+			try {
 				mTextUtils.initializeTratzParser();
 			}
-			catch(ClassNotFoundException e) {
-				throw new RuntimeException(e);
+			catch(Exception e) {
+				throw new RuntimeException("Error initializing Tratz parser -- " + e);
 			}
 		}
 
