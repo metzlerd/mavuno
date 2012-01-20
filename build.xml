@@ -9,7 +9,7 @@
 	<property name="dist.dir" value="dist" />
 	<property name="javadoc.dir" location="docs/api/" />
 
-	<property name="version" value="0.1" />
+	<property name="version" value="0.2" />
 
 	<!-- paths used for compilation and run -->
 	<path id="lib.path.id">
@@ -110,7 +110,7 @@
 
 	<target name="jar" depends="compile" description="builds the jar">
 		<jar jarfile="mavuno-${version}.jar" basedir="${build.dir}" />
-		<jar jarfile="mavuno-${version}-models.jar">
+		<jar jarfile="${lib.dir}/mavuno-models-${version}.jar">
 			<fileset dir=".">
 				<include name="models/**" />
 				<include name="wordnet/**" />
@@ -157,7 +157,7 @@
 		<delete dir="${dist.dir}" />
 		<delete dir="${javadoc.dir}" />
 		<delete file="mavuno-${version}.jar" />
-		<delete file="mavuno-${version}-models.jar" />
+		<delete file="mavuno-models-${version}.jar" />
 		<delete file="mavuno-${version}.zip" />
 		<delete file="mavuno-${version}.tar.gz" />
 	</target>

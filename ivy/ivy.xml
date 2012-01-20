@@ -18,7 +18,7 @@
 
     <!-- Stanford Core NLP -->
     <dependency org="edu.stanford" name="stanford-corenlp" rev="2012-01-08" />
-    <dependency org="edu.stanford" name="stanford-corenlp" rev="2011-12-27-models" />
+    <dependency org="edu.stanford" name="stanford-corenlp-models" rev="2011-12-27" />
     <dependency org="joda-time" name="joda-time" rev="2.0" />
     <dependency org="xom" name="xom" rev="1.2.5" />
 
