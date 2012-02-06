@@ -92,6 +92,7 @@ public class CombineGlobalStats extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("CombineGlobalStats");
+		job.setJarByClass(CombineGlobalStats.class);
 
 		for(int split = 0; split < numSplits; split++) {
 			FileInputFormat.addInputPath(job, new Path(inputPath + "/" + split));

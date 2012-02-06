@@ -184,6 +184,7 @@ public class Split extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("Split");
+		job.setJarByClass(Split.class);
 
 		MavunoUtils.recursivelyAddInputPaths(job, inputPath);
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));

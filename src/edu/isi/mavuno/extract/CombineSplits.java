@@ -156,6 +156,7 @@ public class CombineSplits extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("CombineSplits");
+		job.setJarByClass(CombineSplits.class);
 
 		for(int split = 0; split < numSplits; split++) {
 			FileInputFormat.addInputPath(job, new Path(examplesPath + "/" + split));

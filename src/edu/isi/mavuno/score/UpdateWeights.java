@@ -150,6 +150,7 @@ public class UpdateWeights extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("UpdateWeights");
+		job.setJarByClass(UpdateWeights.class);
 
 		FileInputFormat.addInputPath(job, new Path(statsPath));
 		FileInputFormat.addInputPath(job, new Path(scoresPath));
