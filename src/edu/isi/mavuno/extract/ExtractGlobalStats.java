@@ -270,7 +270,7 @@ public class ExtractGlobalStats extends Configured implements Tool {
 		return run();
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	public int run() throws ClassNotFoundException, InterruptedException, IOException {
 		Configuration conf = getConf();
 		
@@ -311,6 +311,7 @@ public class ExtractGlobalStats extends Configured implements Tool {
 
 			Job job = new Job(conf);
 			job.setJobName("ExtractGlobalStats");
+			job.setJarByClass(ExtractGlobalStats.class);
 
 			MavunoUtils.recursivelyAddInputPaths(job, corpusPath);
 			FileOutputFormat.setOutputPath(job, new Path(outputPath + "/../split/" + split));

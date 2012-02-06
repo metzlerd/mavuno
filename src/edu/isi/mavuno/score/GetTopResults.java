@@ -170,6 +170,7 @@ public class GetTopResults extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("GetTopResults");
+		job.setJarByClass(GetTopResults.class);
 
 		FileInputFormat.addInputPath(job, new Path(inputPath));
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));

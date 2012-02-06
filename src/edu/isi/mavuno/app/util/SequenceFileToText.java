@@ -81,6 +81,7 @@ public class SequenceFileToText extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("SequenceFileToText");
+		job.setJarByClass(SequenceFileToText.class);
 
 		FileInputFormat.addInputPath(job, new Path(inputPath));
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));

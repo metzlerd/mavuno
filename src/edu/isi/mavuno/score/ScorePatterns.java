@@ -205,6 +205,7 @@ public class ScorePatterns extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("ScorePatterns");
+		job.setJarByClass(ScorePatterns.class);
 
 		FileInputFormat.addInputPath(job, new Path(inputPath));
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));
