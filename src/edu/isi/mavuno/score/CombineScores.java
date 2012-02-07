@@ -112,6 +112,7 @@ public class CombineScores extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("CombineScores");
+		job.setJarByClass(CombineScores.class);
 
 		MavunoUtils.recursivelyAddInputPaths(job, inputPath);
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));

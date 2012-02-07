@@ -205,6 +205,7 @@ public class ScoreContexts extends Configured implements Tool {
 
 		Job job = new Job(conf);
 		job.setJobName("ScoreContexts");
+		job.setJarByClass(ScoreContexts.class);
 
 		FileInputFormat.addInputPath(job, new Path(inputPath));
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));
