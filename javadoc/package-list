@@ -1,0 +1,14 @@
+edu.isi.mavuno.app.distsim
+edu.isi.mavuno.app.ie
+edu.isi.mavuno.app.mine
+edu.isi.mavuno.app.nlp
+edu.isi.mavuno.app.util
+edu.isi.mavuno.extract
+edu.isi.mavuno.input
+edu.isi.mavuno.nlp
+edu.isi.mavuno.score
+edu.isi.mavuno.util
+edu.umd.cloud9.io
+edu.umd.cloud9.io.array
+edu.umd.cloud9.util.array
+edu.umd.cloud9.util.map
